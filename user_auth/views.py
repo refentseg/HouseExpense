@@ -6,20 +6,24 @@ from django.contrib.auth.models import User
 
 
 # Create your views here.
+# Login User
 def user_login(request):
     return render(request, 'authentication/login.html')
 
 
+# Register User
 def user_register(request):
     return render(request, 'authentication/register.html')
 
 
+# Create User
 def create_user(request):
     first_name = request.POST['first_name']
     username = request.POST['username']
     password = request.POST['password']
     password_confirm = request.POST['password_confirm']
 
+    
     context = {}
 
     # Checks if user exists
@@ -36,7 +40,7 @@ def create_user(request):
                                         username=username, password=password)
         user.save()
 
-        # returns to login
+        # returns to login page
         return HttpResponseRedirect(
             reverse('user_auth:login')
         )
@@ -45,6 +49,7 @@ def create_user(request):
         return render(request, 'authentication/register.html', context)
 
 
+# Authenticates user
 def authenticate_user(request):
     username = request.POST['username']
     password = request.POST['password']
