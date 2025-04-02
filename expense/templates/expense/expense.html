@@ -1,0 +1,79 @@
+{% extends "header.html" %}
+
+{% block content %}
+<div>
+    <div class="d-flex justify-content-between mb-3">
+        <div class="h1">Expense</div>
+        <div>
+            <a href="{% url 'expense:add_expense'%}" class="btn btn-success"> Add Expense</a>
+        </div>
+    </div>
+    {% if expenses_list %}
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Paid Date</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Amount</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for expense in expenses_list %}
+            <tr>
+                <td>{{ expense.paid_date|date:"Y-m-d" }}</td>
+                
+                <td>{{ expense.title }}</td>
+                
+                <td>{{ expense.category.name }}</td>
+                
+                <td>
+                    R {{ expense.amount}}
+                </td>
+                
+                <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <a href="{% url 'expense:edit_expense' expense.id %}" class="btn btn-outline-primary">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" 
+                        data-bs-target="#deleteModal{{ expense.id }}" title="Delete">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                    
+                    {% comment %} Delete modal {% endcomment %}
+                    <div class="modal fade" id="deleteModal{{ expense.id }}" tabindex="-1" 
+                    aria-labelledby="deleteModalLabel{{ expense.id }}" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="deleteModalLabel{{ expense.id }}">Confirm Deletion</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Are you sure you want to delete "{{ expense.title }}" ({{ expense.amount }})?
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <form action="{% url 'expense:delete_expense' expense.id %}" method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="bi bi-trash"></i> Confirm Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No Expenses</p>
+    {% endif %}
+</div>
+{% endblock %}

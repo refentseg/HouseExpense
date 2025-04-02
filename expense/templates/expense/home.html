@@ -1,0 +1,92 @@
+{% extends "header.html" %}
+
+{% block extra_css %}
+<style>
+    #categoryPieChart {
+        height: 400px; /* Adjust this value to your desired height */
+        width: 100%; /* Or adjust the width as necessary */
+    }
+
+    /* Color indicator for legend */
+    .color-indicator {
+        width: 12px;
+        height: 12px;
+        display: inline-block;
+        border-radius: 50%;
+        margin-right: 8px;
+    }
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .chart-container {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>Dashboard</h1>
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <canvas style="width:200px height: 200px" id="categoryPieChart"></canvas>
+            </div>
+            <div class="col-md-4 d-flex align-items-center">
+                <ul class="list-group w-100">
+                    {% for category in categories %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{category.name }}
+                        <span class="badge rounded-pill" style="background-color: {{ category.color }};"> {{ category.percentage }}% </span>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-muted">No categories found</li>
+                    {% endfor %}
+
+                </ul>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<div class="text-center mt-4">
+    <a href="{% url 'expense:expense_list' %}" class="btn btn-primary">View Expenses</a>
+</div>
+
+<!-- https://www.chartjs.org/docs/latest/charts/doughnut.html#pie -->
+<!-- https://www.chartjs.org/docs/latest/configuration/ -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var ctx = document.getElementById("categoryPieChart").getContext("2d");
+
+        var categoryData = [
+        {% for category in categories %}
+            "{{ category.percentage }}"{% if not forloop.last %},{% endif %}  //looks for last item in loop
+        {% endfor %}
+        ];
+        
+        var categoryColors = [
+            {% for category in categories %}
+                "{{ category.color }}"{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+
+        new Chart(ctx, {
+            type: "pie",
+            data: {
+                datasets: [{
+                    data: categoryData,
+                    backgroundColor: categoryColors,
+                    borderWidth: 1,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+            }
+        });
+    });
+</script>
+{% endblock %}

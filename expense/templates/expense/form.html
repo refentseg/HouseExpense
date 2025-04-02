@@ -1,0 +1,32 @@
+{% extends "header.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2 class="mb-4">{{ title }}</h2>
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                {{ form.category }}
+            </div>
+            
+            <div class="mb-3">
+                {{ form.title }}
+            </div>
+            
+            <div class="mb-3">
+                {{ form.amount }}
+            </div>
+            
+            <div class="mb-3">
+                {{ form.paid_date }}
+            </div>
+            
+            <button type="submit" class="btn btn-success">Save Expense</button>
+            {% if expense %} 
+                <a href="{% url 'expense:expense_list' %}" class="btn btn-outline-secondary w-100 mt-2">Cancel</a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+{% endblock %}
