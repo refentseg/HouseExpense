@@ -14,7 +14,7 @@ HouseExpense simplifies household expense management through an intuitive web in
 ## Installation
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/HouseExpense.git
+git clone https://github.com/refentseg/HouseExpense.git
 cd HouseExpense
 ```
 
@@ -58,7 +58,7 @@ python manage.py runserver
 ### Getting Started
 1. You are asked to login first or register
 
-![Login Page]()
+![Login Page](https://github.com/user-attachments/assets/0a5f3cee-6dbc-450f-a2ff-0b7e4be320ee)
 
 2. From Home Page Dashboard you can view expenses list
 3. The dashboard allows you to Add/Edit or Delete expenses
@@ -66,12 +66,12 @@ python manage.py runserver
 ### Dashboard Overview
 The dashboard provides a pie chart visualization of your expenses by category (WiFi, Rent, Water).
 
-![Expense Dashboard]()
+![Expense Dashboard](https://github.com/user-attachments/assets/2921faf9-69e4-43bc-9f83-a090ab54dbb9)
 
 ### Viewing Expenses
 The Expenses page displays a table with all your recorded expenses, showing Date, Title, Category, and Price for each entry.
 
-![View Expenses]()
+![View Expenses](https://github.com/user-attachments/assets/d0c4f993-52c5-48fa-be77-70903bc117a9)
 
 ### Adding New Expenses
 The Add Expense form lets you enter:
@@ -80,13 +80,21 @@ The Add Expense form lets you enter:
 - Amount
 - Date (with calendar picker)
 
-![Add Expense Form]()
+![Add Expense Form](https://github.com/user-attachments/assets/2fa3bada-d676-4330-ab2b-729e742013c6)
 
 ### Editing and Deleting Expenses
+![Edit/Delete](https://github.com/user-attachments/assets/480a960c-33b1-45df-9cc9-58eadc0fd8c8)
+
 From the expenses list view:
-1. Select any expense to edit its details
-2. Use the delete option to remove unwanted expense records
-3. Changes are saved immediately to the database
+1. Select &#x270F; to edit its details
+
+![Edit Expense](https://github.com/user-attachments/assets/891af2ee-5da4-4c3f-ae87-502d7c6cd5b0)
+
+3. Use the &#x1F5D1; delete option to remove expense
+
+![Delete Expense](https://github.com/user-attachments/assets/b872d107-44c7-4ce5-bc4a-31862d414519)
+
+5. Changes are saved immediately to the database
 
 
 ## Credits
