@@ -75,5 +75,6 @@
     {% else %}
     <p>No Expenses</p>
     {% endif %}
+    <a href="{% url 'expense:generate_report' %}" class="btn btn-primary">Generate Report</a>
 </div>
 {% endblock %}
