@@ -1,0 +1,19 @@
+# Database files
+db.sqlite3
+*.sqlite3
+
+# Python bytecode
+__pycache__/
+*/__pycache__/
+*/*/__pycache__/
+*.py[cod]
+*$py.class
+
+# Django stuff
+*.log
+local_settings.py
+media/
+staticfiles/
+
+# Virtual environment
+myworld/
