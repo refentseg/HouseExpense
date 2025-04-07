@@ -99,13 +99,16 @@ def authenticate_user(request):
     """
     Authenticates user credentials and logs in the user.
 
-    Processes the login form data, verifies the credentials against the database,
-    and logs in the user if authentication is successful. Displays error message
+    Processes the login form data, verifies the credentials against the
+    database,
+    and logs in the user if authentication is successful. Displays error
+    message
     if authentication fails.
 
     :param request: HttpRequest object containing the form data in POST
     :type request: HttpRequest
-    :returns: HttpResponse with login form (on error) or redirect to dashboard (on success)
+    :returns: HttpResponse with login form (on error) or redirect to dashboard
+    (on success)
     :rtype: HttpResponse
     """
     # Get user input from login form
