@@ -8,18 +8,50 @@ from django.contrib.auth.models import User
 # Create your views here.
 # Login User
 def user_login(request):
+    """
+    Displays the login page to the user.
+    
+    This view renders the login form where users can enter their credentials.
+    
+    :param request: HttpRequest object containing metadata about the request
+    :type request: HttpRequest
+    :returns: HttpResponse object with the rendered login template
+    :rtype: HttpResponse
+    """
     # Display login page to user
     return render(request, 'authentication/login.html')
 
 
 # Register User
 def user_register(request):
+    """
+    Displays the login page to the user.
+    
+    This view renders the login form where users can enter their credentials.
+    
+    :param request: HttpRequest object containing metadata about the request
+    :type request: HttpRequest
+    :returns: HttpResponse object with the rendered login template
+    :rtype: HttpResponse
+    """
     # Display register page to user
     return render(request, 'authentication/register.html')
 
 
 # Create User
 def create_user(request):
+    """
+    Processes user registration form submission and creates a new user.
+    
+    Validates form data, checks if username exists, confirms password match,
+    and creates a new user account. Returns appropriate error messages if 
+    validation fails.
+    
+    :param request: HttpRequest object containing the form data in POST
+    :type request: HttpRequest
+    :returns: HttpResponse with registration form (on error) or redirect to login (on success)
+    :rtype: HttpResponse
+    """
     # Get user input from registration form
     # Extract form data from the POST request
     first_name = request.POST['first_name']
@@ -63,7 +95,19 @@ def create_user(request):
 
 # Authenticates user
 def authenticate_user(request):
-    # Get user input from loginn form
+    """
+    Authenticates user credentials and logs in the user.
+    
+    Processes the login form data, verifies the credentials against the database,
+    and logs in the user if authentication is successful. Displays error message
+    if authentication fails.
+    
+    :param request: HttpRequest object containing the form data in POST
+    :type request: HttpRequest
+    :returns: HttpResponse with login form (on error) or redirect to dashboard (on success)
+    :rtype: HttpResponse
+    """
+    # Get user input from login form
     # Extract form data from the POST request
     username = request.POST['username']
     password = request.POST['password']
