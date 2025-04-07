@@ -25,7 +25,6 @@ def index(request):
 
     Calculates the total expenses and breaks down expenses by category,
     including percentage calculations and color assignments for visualization.
-  
     :param request: HttpRequest object containing metadata about the request
     :type request: HttpRequest
     :returns: HttpResponse object with the rendered home template
@@ -116,6 +115,7 @@ def add_expense(request):
     valid POST
     :rtype: HttpResponse
     """
+
     # Checks if request is a POST
     if request.method == 'POST':
         form = ExpenseForm(request.POST)
@@ -155,6 +155,7 @@ def edit_expense(request, expense_id):
     :rtype: HttpResponse
     :raises: Http404 if expense with given ID does not exist
     """
+
     expense = get_object_or_404(Expense, pk=expense_id)
     if request.method == 'POST':
         form = ExpenseForm(request.POST, instance=expense)
@@ -192,6 +193,7 @@ def delete_expense(request, expense_id):
     :rtype: HttpResponse
     :raises: Http404 if expense with given ID does not exist
     """
+
     # Get the expense object by primary key
     # If its not found return 404 not found
     expense = get_object_or_404(Expense, pk=expense_id)
@@ -221,6 +223,7 @@ def generate_report(request):
     :returns: HttpResponse containing the generated PDF as an attachment
     :rtype: HttpResponse
     """
+    
     # Create HttpResponse with PDF content type
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="report.pdf"'
