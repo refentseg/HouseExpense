@@ -1,0 +1,435 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>expense.views &mdash; house-expense 00.00.01 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d7bb8d4d"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            house-expense
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">expense</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">house-expense</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">expense.views</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for expense.views</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django.http</span><span class="w"> </span><span class="kn">import</span> <span class="n">HttpResponse</span><span class="p">,</span> <span class="n">HttpResponseRedirect</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.shortcuts</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_object_or_404</span><span class="p">,</span> <span class="n">render</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.urls</span><span class="w"> </span><span class="kn">import</span> <span class="n">reverse</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.db.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sum</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">login_required</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">expense.forms</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExpenseForm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">expense.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Category</span><span class="p">,</span> <span class="n">Expense</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">reportlab.lib</span><span class="w"> </span><span class="kn">import</span> <span class="n">colors</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">reportlab.lib.pagesizes</span><span class="w"> </span><span class="kn">import</span> <span class="n">A4</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">reportlab.platypus</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleDocTemplate</span><span class="p">,</span> <span class="n">Table</span><span class="p">,</span> <span class="n">TableStyle</span><span class="p">,</span> <span class="n">Paragraph</span><span class="p">,</span> <span class="n">Spacer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">reportlab.lib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">getSampleStyleSheet</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">reportlab.lib.units</span><span class="w"> </span><span class="kn">import</span> <span class="n">cm</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
+
+<span class="c1"># Create your views here.</span>
+
+
+<div class="viewcode-block" id="index">
+<a class="viewcode-back" href="../../expense.html#expense.views.index">[docs]</a>
+<span class="nd">@login_required</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">index</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Displays the dashboard home page with expense summary data.</span>
+
+<span class="sd">    Calculates the total expenses and breaks down expenses by category,</span>
+<span class="sd">    including percentage calculations and color assignments for visualization.</span>
+<span class="sd">    :param request: HttpRequest object containing metadata about the request</span>
+<span class="sd">    :type request: HttpRequest</span>
+<span class="sd">    :returns: HttpResponse object with the rendered home template</span>
+<span class="sd">    :rtype: HttpResponse</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Total expenses</span>
+    <span class="n">total_expenses</span> <span class="o">=</span> <span class="n">Expense</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
+        <span class="n">total</span><span class="o">=</span><span class="n">Sum</span><span class="p">(</span><span class="s1">&#39;amount&#39;</span><span class="p">))[</span><span class="s1">&#39;total&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="mi">0</span>
+
+    <span class="c1"># Expense per category</span>
+    <span class="n">expenses_category</span> <span class="o">=</span> <span class="n">Category</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span>
+        <span class="n">total_amount</span><span class="o">=</span><span class="n">Sum</span><span class="p">(</span><span class="s1">&#39;expense__amount&#39;</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Adding colors</span>
+    <span class="n">COLORS</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;#FF6384&#39;</span><span class="p">,</span> <span class="s1">&#39;#36A2EB&#39;</span><span class="p">,</span> <span class="s1">&#39;#FFCE56&#39;</span><span class="p">,</span> <span class="s1">&#39;#4BC0C0&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;#9966FF&#39;</span><span class="p">,</span> <span class="s1">&#39;#FF9F40&#39;</span><span class="p">,</span> <span class="s1">&#39;#6C757D&#39;</span>
+    <span class="p">]</span>
+
+    <span class="n">percentage_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># Loops each expense category</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">category</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">expenses_category</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">category</span><span class="o">.</span><span class="n">total_amount</span> <span class="ow">and</span> <span class="n">total_expenses</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Calculate percentage</span>
+            <span class="n">percentage</span> <span class="o">=</span> <span class="p">(</span><span class="n">category</span><span class="o">.</span><span class="n">total_amount</span> <span class="o">/</span> <span class="n">total_expenses</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">percentage</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">color</span> <span class="o">=</span> <span class="n">COLORS</span><span class="p">[</span><span class="n">i</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">COLORS</span><span class="p">)]</span>
+
+        <span class="c1"># Add object to list</span>
+        <span class="n">percentage_list</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">category</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="s1">&#39;total_amount&#39;</span><span class="p">:</span> <span class="n">category</span><span class="o">.</span><span class="n">total_amount</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s1">&#39;percentage&#39;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">percentage</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># rounding of to 2 deceimals</span>
+            <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="n">color</span>
+        <span class="p">})</span>
+
+    <span class="c1"># Context dictionary to pass data to the template</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;total_expenses&#39;</span><span class="p">:</span> <span class="n">total_expenses</span><span class="p">,</span>
+        <span class="s1">&#39;categories&#39;</span><span class="p">:</span> <span class="n">percentage_list</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="c1">#</span>
+    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;expense/home.html&#39;</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="expense_list">
+<a class="viewcode-back" href="../../expense.html#expense.views.expense_list">[docs]</a>
+<span class="nd">@login_required</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">expense_list</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Displays a list of all expenses ordered by paid date (most recent first).</span>
+
+<span class="sd">    Retrieves all expense records from the database and calculates the total</span>
+<span class="sd">    sum of all expenses.</span>
+
+<span class="sd">    :param request: HttpRequest object containing metadata about the request</span>
+<span class="sd">    :type request: HttpRequest</span>
+<span class="sd">    :returns: HttpResponse object with the rendered expense list template</span>
+<span class="sd">    :rtype: HttpResponse</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Gets all expenses</span>
+    <span class="n">expenses_list</span> <span class="o">=</span> <span class="n">Expense</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s1">&#39;-paid_date&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Calculate the total sum of all expenses</span>
+    <span class="n">total_expenses</span> <span class="o">=</span> <span class="n">expenses_list</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="n">Sum</span><span class="p">(</span><span class="s1">&#39;amount&#39;</span><span class="p">))[</span><span class="s1">&#39;total&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="mi">0</span>
+
+    <span class="c1"># Context dictionary to pass data to the template</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;expenses_list&#39;</span><span class="p">:</span> <span class="n">expenses_list</span><span class="p">,</span>
+               <span class="s1">&#39;total_expenses&#39;</span><span class="p">:</span> <span class="n">total_expenses</span><span class="p">}</span>
+
+    <span class="c1"># Display expense.html template to user with context data</span>
+    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;expense/expense.html&#39;</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="add_expense">
+<a class="viewcode-back" href="../../expense.html#expense.views.add_expense">[docs]</a>
+<span class="nd">@login_required</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">add_expense</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Handles the creation of a new expense record.</span>
+
+<span class="sd">    Processes the form submission when POST request is received.</span>
+<span class="sd">    If form is valid, saves the new expense and redirects to the expense list.</span>
+<span class="sd">    For GET requests, displays an empty expense form.</span>
+
+<span class="sd">    :param request: HttpRequest object containing metadata about the request</span>
+<span class="sd">    :type request: HttpRequest</span>
+<span class="sd">    :returns: HttpResponse with form for GET or redirect to expense list for</span>
+<span class="sd">    valid POST</span>
+<span class="sd">    :rtype: HttpResponse</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Checks if request is a POST</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
+        <span class="n">form</span> <span class="o">=</span> <span class="n">ExpenseForm</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">)</span>
+        <span class="c1"># Checks if form is valid</span>
+        <span class="k">if</span> <span class="n">form</span><span class="o">.</span><span class="n">is_valid</span><span class="p">():</span>
+            <span class="n">form</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+            <span class="c1"># Dislay expense list to user</span>
+            <span class="k">return</span> <span class="n">HttpResponseRedirect</span><span class="p">(</span>
+                <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;expense:expense_list&#39;</span><span class="p">)</span>
+            <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">form</span> <span class="o">=</span> <span class="n">ExpenseForm</span><span class="p">()</span>
+
+    <span class="c1"># Display form to user</span>
+    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;expense/form.html&#39;</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s1">&#39;form&#39;</span><span class="p">:</span> <span class="n">form</span><span class="p">,</span>  <span class="c1"># Pass the form instance to the template</span>
+        <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Add Expense&#39;</span>  <span class="c1"># Set Page title</span>
+        <span class="p">})</span></div>
+
+
+
+<div class="viewcode-block" id="edit_expense">
+<a class="viewcode-back" href="../../expense.html#expense.views.edit_expense">[docs]</a>
+<span class="nd">@login_required</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">edit_expense</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">expense_id</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Handles editing of an existing expense record.</span>
+
+<span class="sd">    Retrieves the specified expense and processes the form submission</span>
+<span class="sd">    when POST request is received. If form is valid, updates the expense</span>
+<span class="sd">    and redirects to the expense list. For GET requests, displays a form</span>
+<span class="sd">    pre-populated with the expense data.</span>
+
+<span class="sd">    :param request: HttpRequest object containing metadata about the request</span>
+<span class="sd">    :type request: HttpRequest</span>
+<span class="sd">    :param expense_id: Primary key of the expense to edit</span>
+<span class="sd">    :type expense_id: int</span>
+<span class="sd">    :returns: HttpResponse with form for GET or redirect to expense list for</span>
+<span class="sd">    valid POST</span>
+<span class="sd">    :rtype: HttpResponse</span>
+<span class="sd">    :raises: Http404 if expense with given ID does not exist</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">expense</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">Expense</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">expense_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
+        <span class="n">form</span> <span class="o">=</span> <span class="n">ExpenseForm</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">,</span> <span class="n">instance</span><span class="o">=</span><span class="n">expense</span><span class="p">)</span>
+        <span class="c1"># Checks if form is valid</span>
+        <span class="k">if</span> <span class="n">form</span><span class="o">.</span><span class="n">is_valid</span><span class="p">():</span>
+            <span class="n">form</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">HttpResponseRedirect</span><span class="p">(</span>
+                <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;expense:expense_list&#39;</span><span class="p">)</span>
+            <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">form</span> <span class="o">=</span> <span class="n">ExpenseForm</span><span class="p">(</span><span class="n">instance</span><span class="o">=</span><span class="n">expense</span><span class="p">)</span>
+
+    <span class="c1"># Display form to user</span>
+    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;expense/form.html&#39;</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s1">&#39;form&#39;</span><span class="p">:</span> <span class="n">form</span><span class="p">,</span>   <span class="c1"># Pass the form instance</span>
+        <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Edit Expense&#39;</span><span class="p">,</span>  <span class="c1"># Set Page title</span>
+        <span class="s1">&#39;expense&#39;</span><span class="p">:</span> <span class="n">expense</span>  <span class="c1"># Pass the existing expense object</span>
+        <span class="p">})</span></div>
+
+
+
+<div class="viewcode-block" id="delete_expense">
+<a class="viewcode-back" href="../../expense.html#expense.views.delete_expense">[docs]</a>
+<span class="nd">@login_required</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">delete_expense</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">expense_id</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Handles deletion of an existing expense record.</span>
+
+<span class="sd">    Retrieves the specified expense and deletes it when a POST request</span>
+<span class="sd">    is received. For GET requests, displays a confirmation form.</span>
+
+<span class="sd">    :param request: HttpRequest object containing metadata about the request</span>
+<span class="sd">    :type request: HttpRequest</span>
+<span class="sd">    :param expense_id: Primary key of the expense to delete</span>
+<span class="sd">    :type expense_id: int</span>
+<span class="sd">    :returns: HttpResponse with confirmation form for GET or redirect to</span>
+<span class="sd">    expense list for POST</span>
+<span class="sd">    :rtype: HttpResponse</span>
+<span class="sd">    :raises: Http404 if expense with given ID does not exist</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Get the expense object by primary key</span>
+    <span class="c1"># If its not found return 404 not found</span>
+    <span class="n">expense</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">Expense</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">expense_id</span><span class="p">)</span>
+
+    <span class="c1"># Checks if request is a POST</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
+        <span class="c1"># delete expense object</span>
+        <span class="n">expense</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+        <span class="c1"># Display Expense List Page</span>
+        <span class="k">return</span> <span class="n">HttpResponseRedirect</span><span class="p">(</span>
+            <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;expense:expense_list&#39;</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="c1"># Display form to user</span>
+    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;expense/form.html&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;expense&#39;</span><span class="p">:</span> <span class="n">expense</span><span class="p">})</span></div>
+
+
+
+<div class="viewcode-block" id="generate_report">
+<a class="viewcode-back" href="../../expense.html#expense.views.generate_report">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_report</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates a PDF report of all expenses.</span>
+
+<span class="sd">    Creates a PDF document using ReportLab that includes a table of</span>
+<span class="sd">    all expenses with their details and a calculated total.</span>
+<span class="sd">    The PDF is returned as an attachment for download.</span>
+
+<span class="sd">    :param request: HttpRequest object containing metadata about the request</span>
+<span class="sd">    :type request: HttpRequest</span>
+<span class="sd">    :returns: HttpResponse containing the generated PDF as an attachment</span>
+<span class="sd">    :rtype: HttpResponse</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Create HttpResponse with PDF content type</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">content_type</span><span class="o">=</span><span class="s1">&#39;application/pdf&#39;</span><span class="p">)</span>
+    <span class="n">response</span><span class="p">[</span><span class="s1">&#39;Content-Disposition&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;attachment; filename=&quot;report.pdf&quot;&#39;</span>
+
+    <span class="c1"># Create the PDF object using ReportLab</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">SimpleDocTemplate</span><span class="p">(</span>
+        <span class="n">response</span><span class="p">,</span>
+        <span class="n">pagesize</span><span class="o">=</span><span class="n">A4</span><span class="p">,</span>
+        <span class="n">rightMargin</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">cm</span><span class="p">,</span>
+        <span class="n">leftMargin</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">cm</span><span class="p">,</span>
+        <span class="n">topMargin</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">cm</span><span class="p">,</span>
+        <span class="n">bottomMargin</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">cm</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Container for elements to be added to the PDF</span>
+    <span class="n">elements</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Define styles</span>
+    <span class="n">styles</span> <span class="o">=</span> <span class="n">getSampleStyleSheet</span><span class="p">()</span>
+    <span class="n">title_style</span> <span class="o">=</span> <span class="n">styles</span><span class="p">[</span><span class="s1">&#39;Heading1&#39;</span><span class="p">]</span>
+    <span class="n">normal_style</span> <span class="o">=</span> <span class="n">styles</span><span class="p">[</span><span class="s1">&#39;Normal&#39;</span><span class="p">]</span>
+
+    <span class="c1"># Add report title</span>
+    <span class="n">elements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Paragraph</span><span class="p">(</span><span class="s2">&quot;Expense Report&quot;</span><span class="p">,</span> <span class="n">title_style</span><span class="p">))</span>
+    <span class="n">elements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Spacer</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">cm</span><span class="p">))</span>
+
+    <span class="c1"># Add generation date</span>
+    <span class="n">date_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">    Generated on: </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M&#39;</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;&#39;&#39;</span>
+    <span class="n">elements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Paragraph</span><span class="p">(</span><span class="n">date_text</span><span class="p">,</span> <span class="n">normal_style</span><span class="p">))</span>
+    <span class="n">elements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Spacer</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">cm</span><span class="p">))</span>
+
+    <span class="c1"># Gets all expenses</span>
+    <span class="n">expenses_list</span> <span class="o">=</span> <span class="n">Expense</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s1">&#39;-paid_date&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Calculate the total sum of all expenses</span>
+    <span class="n">total_expenses</span> <span class="o">=</span> <span class="n">expenses_list</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="n">Sum</span><span class="p">(</span><span class="s1">&#39;amount&#39;</span><span class="p">))[</span><span class="s1">&#39;total&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="mi">0</span>
+
+    <span class="c1"># Create data for the table</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">[[</span><span class="s1">&#39;Date&#39;</span><span class="p">,</span> <span class="s1">&#39;Item&#39;</span><span class="p">,</span> <span class="s1">&#39;Category&#39;</span><span class="p">,</span> <span class="s1">&#39;Amount&#39;</span><span class="p">]]</span>  <span class="c1"># Header row</span>
+
+    <span class="c1"># Add expense data to table</span>
+    <span class="k">for</span> <span class="n">expense</span> <span class="ow">in</span> <span class="n">expenses_list</span><span class="p">:</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
+            <span class="n">expense</span><span class="o">.</span><span class="n">paid_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">),</span>
+            <span class="n">expense</span><span class="o">.</span><span class="n">title</span><span class="p">,</span>
+            <span class="n">expense</span><span class="o">.</span><span class="n">category</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot;R </span><span class="si">{</span><span class="n">expense</span><span class="o">.</span><span class="n">amount</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">])</span>
+
+    <span class="c1"># Add total row</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;Total: &#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;R </span><span class="si">{</span><span class="n">total_expenses</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">])</span>
+
+    <span class="c1"># https://docs.reportlab.com/reportlab/userguide/ch7_tables/</span>
+    <span class="c1"># Create table</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">colWidths</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">cm</span><span class="p">,</span> <span class="mi">6</span><span class="o">*</span><span class="n">cm</span><span class="p">,</span> <span class="mi">3</span><span class="o">*</span><span class="n">cm</span><span class="p">,</span> <span class="mi">3</span><span class="o">*</span><span class="n">cm</span><span class="p">])</span>
+
+    <span class="c1"># Style the table</span>
+    <span class="n">table_style</span> <span class="o">=</span> <span class="n">TableStyle</span><span class="p">([</span>
+        <span class="c1"># Header styling</span>
+        <span class="p">(</span><span class="s1">&#39;BACKGROUND&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">colors</span><span class="o">.</span><span class="n">grey</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;TEXTCOLOR&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">colors</span><span class="o">.</span><span class="n">whitesmoke</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;ALIGN&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="s1">&#39;CENTER&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;FONTNAME&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="s1">&#39;Helvetica-Bold&#39;</span><span class="p">),</span>
+
+        <span class="c1"># Body styling</span>
+        <span class="p">(</span><span class="s1">&#39;FONTNAME&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">),</span> <span class="s1">&#39;Helvetica&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;VALIGN&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;MIDDLE&#39;</span><span class="p">),</span>
+
+        <span class="c1"># Total row styling</span>
+        <span class="p">(</span><span class="s1">&#39;BACKGROUND&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">colors</span><span class="o">.</span><span class="n">darkgreen</span><span class="p">),</span>  <span class="c1"># Dark green</span>
+        <span class="p">(</span><span class="s1">&#39;TEXTCOLOR&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">colors</span><span class="o">.</span><span class="n">white</span><span class="p">),</span>       <span class="c1"># White text</span>
+        <span class="p">(</span><span class="s1">&#39;FONTNAME&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;Helvetica-Bold&#39;</span><span class="p">),</span>
+
+        <span class="c1"># All cells</span>
+        <span class="p">(</span><span class="s1">&#39;BOX&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">colors</span><span class="o">.</span><span class="n">black</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;GRID&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">),</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">colors</span><span class="o">.</span><span class="n">black</span><span class="p">),</span>
+    <span class="p">])</span>
+
+    <span class="n">table</span><span class="o">.</span><span class="n">setStyle</span><span class="p">(</span><span class="n">table_style</span><span class="p">)</span>
+    <span class="n">elements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+
+    <span class="c1"># Add footnote</span>
+    <span class="n">elements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Spacer</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="o">*</span><span class="n">cm</span><span class="p">))</span>
+    <span class="n">footnote</span> <span class="o">=</span> <span class="s2">&quot;This is an automatically generated report.&quot;</span>
+    <span class="n">elements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Paragraph</span><span class="p">(</span><span class="n">footnote</span><span class="p">,</span> <span class="n">normal_style</span><span class="p">))</span>
+
+    <span class="c1"># Build the PDF</span>
+    <span class="n">doc</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">response</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Refentse.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
