@@ -7,7 +7,6 @@ URL configuration for the House Expense app.
 
 This module defines the URL patterns and their corresponding views.
 
-:app_name: Namespace for reversing URLs specific to the House Expense app.
 :routes:
     - '' → Home page / index view.
     - 'expense/' → List of all expenses.
