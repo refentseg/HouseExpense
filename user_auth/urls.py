@@ -12,8 +12,10 @@ including login, registration, user creation and authentication.
 :routes:
     /: Displays the login page (views.user_login)
     /register/: Displays the user registration form (views.user_register)
-    /create_user/: Processes user creation after form submission (views.create_user)
-    /authenticate_user/: Handles authentication of user credentials (views.authenticate_user)
+    /create_user/: Processes user creation after form submission
+                   (views.create_user)
+    /authenticate_user/: Handles authentication of user credentials
+                         (views.authenticate_user)
 """
 app_name = 'user_auth'
 urlpatterns = [
