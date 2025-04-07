@@ -20,6 +20,16 @@ import datetime
 
 @login_required
 def index(request):
+    """
+    Displays the dashboard home page with expense summary data.
+
+    Calculates the total expenses and breaks down expenses by category,
+    including percentage calculations and color assignments for visualization.
+    :param request: HttpRequest object containing metadata about the request
+    :type request: HttpRequest
+    :returns: HttpResponse object with the rendered home template
+    :rtype: HttpResponse
+    """
     # Total expenses
     total_expenses = Expense.objects.aggregate(
         total=Sum('amount'))['total'] or 0
@@ -65,6 +75,17 @@ def index(request):
 
 @login_required
 def expense_list(request):
+    """
+    Displays a list of all expenses ordered by paid date (most recent first).
+
+    Retrieves all expense records from the database and calculates the total
+    sum of all expenses.
+
+    :param request: HttpRequest object containing metadata about the request
+    :type request: HttpRequest
+    :returns: HttpResponse object with the rendered expense list template
+    :rtype: HttpResponse
+    """
     # Gets all expenses
     expenses_list = Expense.objects.order_by('-paid_date')
 
@@ -81,6 +102,20 @@ def expense_list(request):
 
 @login_required
 def add_expense(request):
+    """
+    Handles the creation of a new expense record.
+
+    Processes the form submission when POST request is received.
+    If form is valid, saves the new expense and redirects to the expense list.
+    For GET requests, displays an empty expense form.
+
+    :param request: HttpRequest object containing metadata about the request
+    :type request: HttpRequest
+    :returns: HttpResponse with form for GET or redirect to expense list for
+    valid POST
+    :rtype: HttpResponse
+    """
+
     # Checks if request is a POST
     if request.method == 'POST':
         form = ExpenseForm(request.POST)
@@ -103,6 +138,24 @@ def add_expense(request):
 
 @login_required
 def edit_expense(request, expense_id):
+    """
+    Handles editing of an existing expense record.
+
+    Retrieves the specified expense and processes the form submission
+    when POST request is received. If form is valid, updates the expense
+    and redirects to the expense list. For GET requests, displays a form
+    pre-populated with the expense data.
+
+    :param request: HttpRequest object containing metadata about the request
+    :type request: HttpRequest
+    :param expense_id: Primary key of the expense to edit
+    :type expense_id: int
+    :returns: HttpResponse with form for GET or redirect to expense list for
+    valid POST
+    :rtype: HttpResponse
+    :raises: Http404 if expense with given ID does not exist
+    """
+
     expense = get_object_or_404(Expense, pk=expense_id)
     if request.method == 'POST':
         form = ExpenseForm(request.POST, instance=expense)
@@ -125,6 +178,22 @@ def edit_expense(request, expense_id):
 
 @login_required
 def delete_expense(request, expense_id):
+    """
+    Handles deletion of an existing expense record.
+
+    Retrieves the specified expense and deletes it when a POST request
+    is received. For GET requests, displays a confirmation form.
+
+    :param request: HttpRequest object containing metadata about the request
+    :type request: HttpRequest
+    :param expense_id: Primary key of the expense to delete
+    :type expense_id: int
+    :returns: HttpResponse with confirmation form for GET or redirect to
+    expense list for POST
+    :rtype: HttpResponse
+    :raises: Http404 if expense with given ID does not exist
+    """
+
     # Get the expense object by primary key
     # If its not found return 404 not found
     expense = get_object_or_404(Expense, pk=expense_id)
@@ -142,6 +211,19 @@ def delete_expense(request, expense_id):
 
 
 def generate_report(request):
+    """
+    Generates a PDF report of all expenses.
+
+    Creates a PDF document using ReportLab that includes a table of
+    all expenses with their details and a calculated total.
+    The PDF is returned as an attachment for download.
+
+    :param request: HttpRequest object containing metadata about the request
+    :type request: HttpRequest
+    :returns: HttpResponse containing the generated PDF as an attachment
+    :rtype: HttpResponse
+    """
+    
     # Create HttpResponse with PDF content type
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="report.pdf"'
