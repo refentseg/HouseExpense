@@ -2,6 +2,21 @@ from django.urls import path
 
 from expense import views
 
+"""
+URL configuration for the House Expense app.
+
+This module defines the URL patterns and their corresponding views.
+
+:app_name: Namespace for reversing URLs specific to the House Expense app.
+:routes:
+    - '' → Home page / index view.
+    - 'expense/' → List of all expenses.
+    - 'expense/add/' → Form to add a new expense.
+    - 'expense/edit/<int:expense_id>/' → Edit an existing expense.
+    - 'expense/delete/<int:expense_id>/' → Delete an existing expense.
+    - 'expense/report/pdf' → Generate a PDF report of expenses.
+"""
+
 app_name = 'expense'
 urlpatterns = [
     path('', views.index, name='index'),
