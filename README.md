@@ -80,7 +80,11 @@ docker run -p 8080:8080 -d house-expense
 ## Environment Setup
 
 1. Create a `.env` file in the project root
-   - Generate a secure SECRET_KEY
+   - Generate a secure SECRET_KEY you can use :
+   ```bash
+   python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+   ```
+
    - Add the generated key to your .env file
    - Check `.env.example` for reference
 
