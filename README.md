@@ -5,6 +5,8 @@ A web application for tracking and managing household expenses.
 ## Table of Contents
 - [Description](#description)
 - [Installation](#installation)
+    - [Standard Installation](#standard-installation)
+    - [Docker Installation](#docker-installation)
 - [Usage](#usage)
 - [Credits](#credits)
 
@@ -12,6 +14,9 @@ A web application for tracking and managing household expenses.
 HouseExpense simplifies household expense management through an intuitive web interface. This Django-based application allows users to track spending
 
 ## Installation
+
+### Standard Installation
+
 1. Clone the repository:
 ```bash
 git clone https://github.com/refentseg/HouseExpense.git
@@ -53,6 +58,37 @@ python manage.py runserver
 ```
 
 7. Access the application at `http://127.0.0.1:8000/`
+
+### Docker Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/refentseg/HouseExpense.git
+cd HouseExpense
+```
+
+2. Create a `.env` file (see [Environment Setup](#environment-setup))
+
+3. Build and run the Docker container:
+```bash
+docker build -t house-expense .
+docker run -p 8080:8080 -d house-expense
+```
+
+4. Access the application at `http://localhost:8080`
+
+## Environment Setup
+
+1. Create a `.env` file in the project root
+   - Generate a secure SECRET_KEY you can use :
+   ```bash
+   python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+   ```
+
+   - Add the generated key to your .env file
+   - Check `.env.example` for reference
+
+2. Make sure to include the `.env` file in your `.gitignore`
 
 ## Usage
 ### Getting Started
