@@ -86,8 +86,9 @@ def expense_list(request):
     :returns: HttpResponse object with the rendered expense list template
     :rtype: HttpResponse
     """
-    # Gets all expenses
-    expenses_list = Expense.objects.order_by('-paid_date')
+    # Gets all expenses for user only
+    expenses_list = (
+        Expense.objects.filter(user=request.user).order_by('-paid_date'))
 
     # Calculate the total sum of all expenses
     total_expenses = expenses_list.aggregate(total=Sum('amount'))['total'] or 0
@@ -121,7 +122,13 @@ def add_expense(request):
         form = ExpenseForm(request.POST)
         # Checks if form is valid
         if form.is_valid():
-            form.save()
+            # Create a new expense object but don't save it yet
+            expense = form.save(commit=False)
+            # Set the user field to the current user
+            expense.user = request.user
+
+            # Save the expense to the database
+            expense.save()
             # Dislay expense list to user
             return HttpResponseRedirect(
                 reverse('expense:expense_list')
