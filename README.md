@@ -2,6 +2,8 @@
 
 A web application for tracking and managing household expenses.
 
+[![Live Demo](https://img.shields.io/badge/Demo-Live-green)](http://13.244.151.230:8080)
+
 ## Table of Contents
 - [Description](#description)
 - [Installation](#installation)
