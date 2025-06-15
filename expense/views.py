@@ -223,7 +223,7 @@ def generate_report(request):
     :returns: HttpResponse containing the generated PDF as an attachment
     :rtype: HttpResponse
     """
-    
+
     # Create HttpResponse with PDF content type
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="report.pdf"'
