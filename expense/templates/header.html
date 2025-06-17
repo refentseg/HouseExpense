@@ -15,7 +15,9 @@
 <body>
     <header class="navbar navbar-expand-lg bg-black text-white">
         <div class="container">
-            <div class="h4"><i class="bi bi-clipboard-data"></i> Expense App</div>
+            <a href="/" class="text-decoration-none text-white">
+                <div class="h4"><i class="bi bi-clipboard-data"></i> Expense App</div>
+            </a>
             <button class="navbar-toggler navbar-dark border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" 
             aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -28,14 +30,17 @@
                     <li class="nav-item h5">
                         <a class="nav-link text-white" aria-current="page" href="/expense">Expense</a>
                     </li>
+                    <li>
+                        {% if user.is_authenticated %}
+                            <div class="d-none d-lg-flex ms-2 d-flex align-items-center" style="width: 200px; height: 45px;">
+                                <div class="card bg-dark border-light px-4 py-1">
+                                    <span class="text-white h5">{{user.username}}</span>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </li>
                 </ul>
-                {% comment %} {% if user.is_authenticated %}
-                    <div class="d-none d-lg-flex ms-5">
-                        <div class="card bg-dark border-light px-2 py-1">
-                            <span class="text-white h5">{{user.username}}</span>
-                        </div>
-                    </div>
-                {% endif %} {% endcomment %}
+                
             </div>
             
         </div>

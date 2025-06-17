@@ -25,7 +25,12 @@
 {% endblock %}
 
 {% block content %}
-<h1>Dashboard</h1>
+<div class="d-flex justify-content-between mb-3">
+    <h1>Dashboard</h1>
+    <div>
+        <a href="{% url 'expense:add_expense'%}" class="btn btn-success"> Add Expense</a>
+    </div>
+</div>
 <div class="card shadow-sm">
     <div class="card-body">
         <div class="row">
@@ -50,7 +55,7 @@
     </div>
 </div>
 
-<div class="text-center mt-4">
+<div class="text-center mt-4 mb-4">
     <a href="{% url 'expense:expense_list' %}" class="btn btn-primary">View Expenses</a>
 </div>
 
