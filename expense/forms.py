@@ -19,3 +19,6 @@ class ExpenseForm(forms.ModelForm):
                                                'placeholder': 'Amount',
                                                'step': '0.01'})
         }
+
+
+

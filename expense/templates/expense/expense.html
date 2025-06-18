@@ -1,11 +1,186 @@
 {% extends "header.html" %}
-
+{% load static %}
+{% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css" rel="stylesheet">
+<style>
+    .filter-panel {
+        position: fixed;
+        top: 0;
+        right: -400px;
+        width: 400px;
+        height: 100vh;
+        background: white;
+        box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+        z-index: 1050;
+        transition: right 0.3s ease;
+        overflow-y: auto;
+    }
+    
+    .filter-panel.show {
+        right: 0;
+    }
+    
+    .filter-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1040;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .filter-overlay.show {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .calendar-input {
+        cursor: pointer;
+    }
+    
+    .filter-header {
+        background-color:#000000;
+        color: white;
+        padding: 1.5rem;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    
+    .expense-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .expense-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .filter-badge {
+        background: linear-gradient(45deg,rgb(0, 0, 0),rgb(34, 34, 34));
+        color: white;
+        border: none;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .filter-badge::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+    
+    .filter-badge:hover::before {
+        left: 100%;
+        color: white;
+    }
+    
+    @media (max-width: 768px) {
+        .filter-panel {
+            width: 100%;
+            right: -100%;
+        }
+    }
+</style>
+{% endblock %}
 {% block content %}
+ <!-- Filter Overlay -->
+<div class="filter-overlay" id="filterOverlay"></div>
+
+<!-- Filter Panel -->
+<div class="filter-panel" id="filterPanel">
+    <div class="filter-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-0">
+                    <i class="fas fa-filter me-2"></i>Filter Expenses
+                </h5>
+            </div>
+            <button type="button" class="btn btn-link text-white p-0" id="closeFilter">
+                <i class="fas fa-times fa-lg"></i>
+            </button>
+        </div>
+    </div>
+    
+    <div class="p-4">
+        <form method="get" id="filterForm">
+            <!-- Month Filter -->
+            <div class="mb-4">
+                <label for="id_month" class="form-label fw-bold">
+                    <i class="fas fa-calendar-alt me-2 text-primary"></i>Month
+                </label>
+                {{ filter.form.month }}
+            </div>
+            
+            <!-- Year Filter -->
+            <div class="mb-4">
+                <label for="id_year" class="form-label fw-bold">
+                    <i class="fas fa-calendar me-2 text-primary"></i>Year
+                </label>
+                {{ filter.form.year }}
+            </div>
+            
+            <!-- Date Range Filter -->
+            <div class="mb-4">
+                <label class="form-label fw-bold">
+                    <i class="fas fa-calendar-week me-2 text-primary"></i>Date Range
+                </label>
+                <div class="mb-2">
+                    <label for="id_paid_date_0" class="form-label text-muted small">From Date</label>
+                    <input type="text" 
+                            class="form-control calendar-input" 
+                            id="id_paid_date_0" 
+                            name="paid_date_after"
+                            placeholder="Select start date"
+                            value="{{ request.GET.paid_date_after }}">
+                </div>
+                <div class="mb-2">
+                    <label for="id_paid_date_1" class="form-label text-muted small">To Date</label>
+                    <input type="text" 
+                            class="form-control calendar-input" 
+                            id="id_paid_date_1" 
+                            name="paid_date_before"
+                            placeholder="Select end date"
+                            value="{{ request.GET.paid_date_before }}">
+                </div>
+            </div>
+            
+            <!-- Filter Actions -->
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-search me-2"></i>Apply Filters
+                </button>
+                <button type="button" class="btn btn-outline-secondary" id="clearFilters">
+                    <i class="fas fa-eraser me-2"></i>Clear All Filters
+                </button>
+            </div>
+            
+            <!-- Active Filters Display -->
+            <div class="mt-4" id="activeFilters">
+                <h6 class="text-muted">Active Filters:</h6>
+                <div id="filterTags"></div>
+            </div>
+        </form>
+    </div>
+</div>
 <div>
     <div class="d-flex justify-content-between mb-3">
-        <div class="h1">Expense</div>
+        <div class="h1">My Expenses</div>
         <div>
             <a href="{% url 'expense:add_expense'%}" class="btn btn-success"> Add Expense</a>
+            <button class="btn filter-badge btn-md me-2" id="filterToggle">
+                <i class="fas fa-filter me-2"></i>Filters
+                <span class="badge bg-light text-dark ms-2" id="filterCount">0</span>
+            </button>
         </div>
     </div>
     {% if expenses_list %}
@@ -77,4 +252,111 @@
     {% endif %}
     <a href="{% url 'expense:generate_report' %}" class="btn btn-primary">Generate Report</a>
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterToggle = document.getElementById('filterToggle');
+            const filterPanel = document.getElementById('filterPanel');
+            const filterOverlay = document.getElementById('filterOverlay');
+            const closeFilter = document.getElementById('closeFilter');
+            const clearFilters = document.getElementById('clearFilters');
+            const filterForm = document.getElementById('filterForm');
+            const filterCount = document.getElementById('filterCount');
+            
+            // Initialize Flatpickr calendars
+            const startDate = flatpickr("#id_paid_date_0", {
+                dateFormat: "Y-m-d",
+                placeholder: "Select start date",
+                onChange: function(selectedDates, dateStr, instance) {
+                    endDate.set('minDate', dateStr);
+                }
+            });
+            
+            const endDate = flatpickr("#id_paid_date_1", {
+                dateFormat: "Y-m-d",
+                placeholder: "Select end date",
+                onChange: function(selectedDates, dateStr, instance) {
+                    startDate.set('maxDate', dateStr);
+                }
+            });
+            
+            // Toggle filter panel
+            function togglePanel() {
+                filterPanel.classList.toggle('show');
+                filterOverlay.classList.toggle('show');
+                document.body.style.overflow = filterPanel.classList.contains('show') ? 'hidden' : '';
+            }
+            
+            // Close filter panel
+            function closePanel() {
+                filterPanel.classList.remove('show');
+                filterOverlay.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+            
+            // Event listeners
+            filterToggle.addEventListener('click', togglePanel);
+            closeFilter.addEventListener('click', closePanel);
+            filterOverlay.addEventListener('click', closePanel);
+            
+            // Clear all filters
+            clearFilters.addEventListener('click', function() {
+                window.location.href = window.location.pathname;
+            });
+            
+            // Update filter count
+            function updateFilterCount() {
+                const urlParams = new URLSearchParams(window.location.search);
+                let count = 0;
+                
+                ['month', 'year', 'paid_date_after', 'paid_date_before'].forEach(param => {
+                    if (urlParams.get(param)) count++;
+                });
+                
+                filterCount.textContent = count;
+                filterCount.style.display = count > 0 ? 'inline' : 'none';
+            }
+            
+            // Display active filters
+            function displayActiveFilters() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const filterTags = document.getElementById('filterTags');
+                let tags = [];
+                
+                if (urlParams.get('month')) {
+                    const months = ['', 'January', 'February', 'March', 'April', 'May', 'June', 
+                                  'July', 'August', 'September', 'October', 'November', 'December'];
+                    tags.push(`Month: ${months[parseInt(urlParams.get('month'))]}`);
+                }
+                
+                if (urlParams.get('year')) {
+                    tags.push(`Year: ${urlParams.get('year')}`);
+                }
+                
+                if (urlParams.get('paid_date_after')) {
+                    tags.push(`From: ${urlParams.get('paid_date_after')}`);
+                }
+                
+                if (urlParams.get('paid_date_before')) {
+                    tags.push(`To: ${urlParams.get('paid_date_before')}`);
+                }
+                
+                filterTags.innerHTML = tags.length > 0 
+                    ? tags.map(tag => `<span class="badge bg-secondary me-1 mb-1">${tag}</span>`).join('')
+                    : '<span class="text-muted small">No filters applied</span>';
+            }
+            
+            // Initialize
+            updateFilterCount();
+            displayActiveFilters();
+            
+            // Close panel on escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && filterPanel.classList.contains('show')) {
+                    closePanel();
+                }
+            });
+        });
+</script>
 {% endblock %}

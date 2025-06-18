@@ -14,8 +14,96 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import cm
 
 import datetime
+import django_filters
+from django_filters.views import FilterView
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 # Create your views here.
+
+
+class ExpenseFilter(django_filters.FilterSet):
+    """
+    Filter class for Expense model to enable filtering by date ranges and
+    months
+    """
+    # Date range filter - from date to date
+    paid_date = django_filters.DateFromToRangeFilter(
+        field_name='paid_date',
+        widget=django_filters.widgets.RangeWidget(attrs={
+            'class': 'form-control',
+            'type': 'date'
+        })
+    )
+
+    # Month filter using ChoiceFilter
+    MONTH_CHOICES = [
+        ('', 'All Months'),
+        ('1', 'January'),
+        ('2', 'February'),
+        ('3', 'March'),
+        ('4', 'April'),
+        ('5', 'May'),
+        ('6', 'June'),
+        ('7', 'July'),
+        ('8', 'August'),
+        ('9', 'September'),
+        ('10', 'October'),
+        ('11', 'November'),
+        ('12', 'December'),
+    ]
+
+    month = django_filters.ChoiceFilter(
+        field_name='paid_date__month',
+        choices=MONTH_CHOICES,
+        empty_label=None,
+        widget=django_filters.widgets.forms.Select(attrs={
+            'class': 'form-control'
+        })
+    )
+
+    # Year filter for better month filtering
+    year = django_filters.NumberFilter(
+        field_name='paid_date__year',
+        widget=django_filters.widgets.forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Year (e.g., 2024)'
+        })
+    )
+
+    class Meta:
+        model = Expense
+        fields = []
+
+
+class ExpenseListView(LoginRequiredMixin, FilterView):
+    """
+    Class-based view for displaying filtered expense list
+    """
+    model = Expense
+    template_name = 'expense/expense.html'
+    context_object_name = 'expenses_list'
+    filterset_class = ExpenseFilter
+
+    def get_queryset(self):
+        """
+        Override queryset to filter by current user and order by paid_date
+        """
+        return Expense.objects.filter(
+            user=self.request.user).order_by('-paid_date')
+
+    def get_context_data(self, **kwargs):
+        """
+        Add total expenses calculation to context
+        """
+        context = super().get_context_data(**kwargs)
+
+        # Get filtered queryset for total calculation
+        filtered_expenses = context['filter'].qs
+        total_expenses = filtered_expenses.aggregate(
+            total=Sum('amount'))['total'] or 0
+
+        context['total_expenses'] = total_expenses
+        return context
 
 
 @login_required
@@ -31,11 +119,11 @@ def index(request):
     :rtype: HttpResponse
     """
     # Total expenses
-    total_expenses = Expense.objects.aggregate(
-        total=Sum('amount'))['total'] or 0
-
+    expenses = Expense.objects.filter(user=request.user)
+    total_expenses = expenses.aggregate(total=Sum('amount'))['total'] or 0
     # Expense per category
-    expenses_category = Category.objects.annotate(
+    expenses_category = Category.objects.filter(
+        expense__user=request.user).annotate(
         total_amount=Sum('expense__amount')
     )
 
@@ -87,14 +175,21 @@ def expense_list(request):
     :rtype: HttpResponse
     """
     # Gets all expenses for user only
-    expenses_list = (
-        Expense.objects.filter(user=request.user).order_by('-paid_date'))
+    expense_filter = ExpenseFilter(
+        request.GET,
+        queryset=Expense.objects.filter(
+            user=request.user).order_by('-paid_date')
+    )
+
+    filtered_expenses = expense_filter.qs
 
     # Calculate the total sum of all expenses
-    total_expenses = expenses_list.aggregate(total=Sum('amount'))['total'] or 0
+    total_expenses = filtered_expenses.aggregate(
+        total=Sum('amount'))['total'] or 0
 
     # Context dictionary to pass data to the template
-    context = {'expenses_list': expenses_list,
+    context = {'filter': expense_filter,
+               'expenses_list': filtered_expenses,
                'total_expenses': total_expenses}
 
     # Display expense.html template to user with context data
@@ -230,7 +325,7 @@ def generate_report(request):
     :returns: HttpResponse containing the generated PDF as an attachment
     :rtype: HttpResponse
     """
-    
+
     # Create HttpResponse with PDF content type
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="report.pdf"'
